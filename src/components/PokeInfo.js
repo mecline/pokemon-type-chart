@@ -7,6 +7,7 @@ import TypeInfo from './TypeInfo';
 class PokeInfo extends React.Component {
     constructor() {
         super();
+        this.typeInfoRef = React.createRef();
         this.state = {
             userPokemon: 'pikachu',
             editingUserPokemon: '',
@@ -15,6 +16,8 @@ class PokeInfo extends React.Component {
             pokemonImage: null,
             pokemonTypeOne: null,
             pokemonTypeTwo: null,
+            errorMessage: ""
+
         };
     }
 
@@ -31,14 +34,26 @@ class PokeInfo extends React.Component {
     async gettingApiData() {
         const url = 'https://pokeapi.co/api/v2/pokemon/' + this.state.userPokemon + '/';
         const response = await fetch(url);
-        const data = await response.json();
-        this.setState({
-            pokemonName: data.species.name,
-            pokemonTypeOne: data.types[0],
-            pokemonTypeTwo: (data.types[1] ? data.types[1] : null),
-            pokemonImage: (data.sprites),
-            loading: false,
-        });
+        if (response.status === 200) {
+            const data = await response.json();
+            this.setState({
+                pokemonName: data.species.name,
+                pokemonTypeOne: data.types[0],
+                pokemonTypeTwo: (data.types[1] ? data.types[1] : null),
+                pokemonImage: (data.sprites),
+                loading: false,
+                errorMessage: ""
+            });
+            // below ref call will handle populating the table data if the API fetch succeeded
+            this.typeInfoRef.current.handleTypeMatch(this.state.pokemonTypeOne.type.name,
+                this.state.pokemonTypeTwo ? this.state.pokemonTypeTwo.type.name : "")
+        }
+        else {
+            this.setState({
+                errorMessage: "That Pokemon doesn't exist in the database, check spelling or choose one with similar typing.",
+                loading: false
+            })
+        }
     }
 
     handleNameChange = (event) => {
@@ -46,7 +61,8 @@ class PokeInfo extends React.Component {
         this.setState({ editingUserPokemon: newValue });
     }
 
-    handleNameSubmit = () => {
+    handleNameSubmit = (e) => {
+        e.preventDefault();
         let newPokemon = this.state.editingUserPokemon;
         this.setState({ userPokemon: newPokemon, loading: true });
     }
@@ -63,18 +79,23 @@ class PokeInfo extends React.Component {
                         value={this.state.editingUserPokemon}
                         onChange={this.handleNameChange}
                     />
-                    <Button onClick={this.handleNameSubmit}>Submit</Button>
+                    <Button onClick={this.handleNameSubmit}>
+                        Submit
+                            </Button>
                 </Grid>
 
-                <div className="formInline">
-                    {this.state.loading ? 'Loading...' : 'You entered: ' + this.state.pokemonName + '. ' +
-                        typeOne.type.name + (typeTwo ? ', ' + typeTwo.type.name : '')}
-                    {this.state.pokemonImage ? <img src={this.state.pokemonImage.front_default} alt='Not found' /> : ''}
-                </div>
+                <React.Fragment>
+                    {this.state.errorMessage ? this.state.errorMessage :
+                        <div className="formInline">
+                            {this.state.loading ? 'Loading...' : 'You entered: ' + this.state.pokemonName + '. ' +
+                                typeOne.type.name + (typeTwo && typeTwo.type.name ? ', ' + typeTwo.type.name : '')}
+                            {this.state.pokemonImage ? <img src={this.state.pokemonImage.front_default} alt='Not found' /> : ''}
+                        </div>
+                    }
+                </React.Fragment>
                 <TypeInfo style={{ padding: '10px' }}
-                    typeOne={typeOne ? typeOne.type.name : null}
-                    typeTwo={typeTwo ? typeTwo.type.name : null}
-                    loading={true}
+                    loading={this.state.loading}
+                    ref={this.typeInfoRef}
                 />
 
             </div>

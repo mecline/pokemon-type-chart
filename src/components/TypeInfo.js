@@ -1,6 +1,5 @@
 import React from 'react';
 import typeMatchups from '../data/typeMatchups.json';
-import { Button } from '@material-ui/core';
 import MaterialTable from 'material-table';
 
 class TypeInfo extends React.Component {
@@ -16,8 +15,10 @@ class TypeInfo extends React.Component {
         };
     }
 
-    
     handleTypeMatch(typeOne, typeTwo) {
+        let typeData = [];
+        if (typeOne) { typeData.push(typeOne) }
+        if (typeTwo) { typeData.push(typeTwo) }
         let doubleDamageTo = [];
         let halfDamageTo = [];
         let noDamageTo = [];
@@ -25,7 +26,7 @@ class TypeInfo extends React.Component {
         let halfDamageFrom = [];
         let noDamageFrom = [];
         Object.keys(typeMatchups).map((type) => {
-            if (typeOne === type) {
+            if (typeData.includes(type)) {
                 let goodMatch = typeMatchups[type].damage_relations.double_damage_to;
                 let weakMatch = typeMatchups[type].damage_relations.half_damage_to;
                 let ineffective = typeMatchups[type].damage_relations.noDamageTo;
@@ -51,6 +52,7 @@ class TypeInfo extends React.Component {
                     return halfDamageFrom.push(name.name + ' ');
                 })
             }
+            return typeMatchups;
         })
         this.setState({
             doubleDamageTo: doubleDamageTo,
@@ -67,7 +69,6 @@ class TypeInfo extends React.Component {
     }
 
     render() {
-        const { typeOne, typeTwo } = this.props;
 
         let tableData = [
             this.createRowData(
@@ -82,11 +83,7 @@ class TypeInfo extends React.Component {
 
         return (
             <div>
-                <Button onClick={() => this.handleTypeMatch(typeOne, typeTwo)}>
-                    Refresh
-                </Button>
-
-                {tableData && <div style={{ maxWidth: '100%' }}>
+                { tableData && <div style={{ maxWidth: '100%' }}>
                     <MaterialTable
                         columns={[
                             { title: 'Double Damage To', field: 'doubleDamageTo' },
