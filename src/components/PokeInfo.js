@@ -2,7 +2,8 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import { Button } from '@material-ui/core';
-import TypeInfo from './TypeInfo';
+import TypeTable from './TypeTable';
+import damageCalculator from './DamageCalculator';
 
 class PokeInfo extends React.Component {
     constructor() {
@@ -11,48 +12,101 @@ class PokeInfo extends React.Component {
         this.state = {
             userPokemon: 'pikachu',
             editingUserPokemon: '',
+            offense: true,
             loading: true,
             pokemonName: null,
             pokemonImage: null,
             pokemonTypeOne: null,
             pokemonTypeTwo: null,
             errorMessage: ""
-
         };
+        this.typeChart = new Map();
+        this.typingDamageCalcs = [];
+        this.calculatedTypeChart = [];
     }
 
     async componentDidMount() {
-        this.gettingApiData();
+        await Promise.all([
+            this.fetchAPIPokemonAndTypes(),
+            this.initTypeChart()
+        ])
     }
 
     componentDidUpdate() {
         if (this.state.loading) {
-            this.gettingApiData();
+            this.typingDamageCalcs = [];
+            this.initTypeChart();
+            this.fetchAPIPokemonAndTypes();
         }
     }
 
-    async gettingApiData() {
+    async fetchAPIPokemonAndTypes() {
+        this.calculatedTypeChart = [];
+        this.typingDamageCalcs = [];
+        const pokemonData = await this.getPokemonData();
+        await Promise.all(
+            pokemonData.types.map(async (type) => {
+                const typeAPIFetch = await this.getTypeMatch(type.type.url);
+                this.typingDamageCalcs.push({
+                    'type': typeAPIFetch.name,
+                    'damageCalcs': typeAPIFetch.damage_relations
+                })
+                return (this.typingDamageCalcs);
+            })
+        )
+        this.calculatedTypeChart = damageCalculator(this.typeChart, this.typingDamageCalcs, this.state.offense);
+        this.setState({ loading: false });
+    }
+
+    async initTypeChart() {
+        const typeUrl = 'https://pokeapi.co/api/v2/type/';
+        const typeResponse = await fetch(typeUrl);
+        if (typeResponse.status === 200) {
+            let typeChartData = await typeResponse.json();
+            typeChartData && typeChartData.results.map(typing => {
+                return (this.typeChart.set(typing.name, 1));
+            });
+        }
+        else {
+            this.setState({
+                errorMessage: "Type Chart Not Fetched",
+            })
+        }
+    }
+
+    async getPokemonData() {
         const url = 'https://pokeapi.co/api/v2/pokemon/' + this.state.userPokemon + '/';
         const response = await fetch(url);
         if (response.status === 200) {
-            const data = await response.json();
+            const pokemonData = await response.json();
             this.setState({
-                pokemonName: data.species.name,
-                pokemonTypeOne: data.types[0],
-                pokemonTypeTwo: (data.types[1] ? data.types[1] : null),
-                pokemonImage: (data.sprites),
+                pokemonName: pokemonData.species.name,
+                pokemonTypeOne: pokemonData.types[0],
+                pokemonTypeTwo: (pokemonData.types[1] ? pokemonData.types[1] : null),
+                pokemonImage: (pokemonData.sprites),
                 loading: false,
                 errorMessage: ""
             });
-            // below ref call will handle populating the table data if the API fetch succeeded
-            this.typeInfoRef.current.handleTypeMatch(this.state.pokemonTypeOne.type.name,
-                this.state.pokemonTypeTwo ? this.state.pokemonTypeTwo.type.name : "")
+            return (pokemonData);
         }
         else {
             this.setState({
                 errorMessage: "That Pokemon doesn't exist in the database, check spelling or choose one with similar typing.",
-                loading: false
-            })
+            });
+        }
+    }
+
+    async getTypeMatch(APIUrlForType) {
+        const url = APIUrlForType;
+        const response = await fetch(url);
+        if (response.status === 200) {
+            let typeData = await response.json();
+            return (typeData);
+        }
+        else {
+            this.setState({
+                errorMessage: "An error occured when fetching type matchups.",
+            });
         }
     }
 
@@ -65,6 +119,10 @@ class PokeInfo extends React.Component {
         e.preventDefault();
         let newPokemon = this.state.editingUserPokemon;
         this.setState({ userPokemon: newPokemon, loading: true });
+    }
+
+    handleToggleOffense = () => {
+        this.setState({ offense: !this.state.offense, loading: true });
     }
 
     render() {
@@ -81,7 +139,10 @@ class PokeInfo extends React.Component {
                     />
                     <Button onClick={this.handleNameSubmit}>
                         Submit
-                            </Button>
+                    </Button>
+                    <Button onClick={this.handleToggleOffense}>
+                        {this.state.offense ? 'Showing Offense' : 'Showing Defense'}
+                    </Button>
                 </Grid>
 
                 <React.Fragment>
@@ -90,14 +151,14 @@ class PokeInfo extends React.Component {
                             {this.state.loading ? 'Loading...' : 'You entered: ' + this.state.pokemonName + '. ' +
                                 typeOne.type.name + (typeTwo && typeTwo.type.name ? ', ' + typeTwo.type.name : '')}
                             {this.state.pokemonImage ? <img src={this.state.pokemonImage.front_default} alt='Not found' /> : ''}
+
                         </div>
                     }
                 </React.Fragment>
-                <TypeInfo style={{ padding: '10px' }}
-                    loading={this.state.loading}
-                    ref={this.typeInfoRef}
+                <TypeTable style={{ padding: '10px' }}
+                    typeChart={this.typeChart}
+                    damageCalcs={this.typingDamageCalcs}
                 />
-
             </div>
         )
     }
