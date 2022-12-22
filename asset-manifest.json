@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/pokemon-type-chart/static/css/main.b1999807.chunk.css",
+    "main.js": "/pokemon-type-chart/static/js/main.6b061aa2.chunk.js",
+    "main.js.map": "/pokemon-type-chart/static/js/main.6b061aa2.chunk.js.map",
+    "runtime-main.js": "/pokemon-type-chart/static/js/runtime-main.ecdf99e2.js",
+    "runtime-main.js.map": "/pokemon-type-chart/static/js/runtime-main.ecdf99e2.js.map",
+    "static/js/2.02fcb04c.chunk.js": "/pokemon-type-chart/static/js/2.02fcb04c.chunk.js",
+    "static/js/2.02fcb04c.chunk.js.map": "/pokemon-type-chart/static/js/2.02fcb04c.chunk.js.map",
+    "index.html": "/pokemon-type-chart/index.html",
+    "precache-manifest.0cfb92626626cdcc0d8d541811eae7c3.js": "/pokemon-type-chart/precache-manifest.0cfb92626626cdcc0d8d541811eae7c3.js",
+    "service-worker.js": "/pokemon-type-chart/service-worker.js",
+    "static/css/main.b1999807.chunk.css.map": "/pokemon-type-chart/static/css/main.b1999807.chunk.css.map",
+    "static/js/2.02fcb04c.chunk.js.LICENSE.txt": "/pokemon-type-chart/static/js/2.02fcb04c.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.ecdf99e2.js",
+    "static/js/2.02fcb04c.chunk.js",
+    "static/css/main.b1999807.chunk.css",
+    "static/js/main.6b061aa2.chunk.js"
+  ]
+}
