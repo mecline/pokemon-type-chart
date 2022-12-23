@@ -1,14 +1,23 @@
 import React from 'react';
 import './App.css';
 import PokeInfo from './components/PokeInfo'
-import { Toolbar } from '@material-ui/core';
+// import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles';
+
+// const theme = createMuiTheme();
+
+// const useStyles = makeStyles((theme) => {
+//   root: {
+//     // some CSS that accesses the theme
+//   }
+// });
 
 function App() {
   return (
-    <div className="homePage">
-      <Toolbar className="toolbar"></Toolbar>
+    // <ThemeProvider theme={theme}>
+    <div>
       <PokeInfo />
     </div>
+    // </ThemeProvider>
   );
 }
 

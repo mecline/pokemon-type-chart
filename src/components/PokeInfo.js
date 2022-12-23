@@ -1,9 +1,12 @@
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
-import Grid from '@material-ui/core/Grid';
-import { Button } from '@material-ui/core';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import SearchIcon from '@mui/icons-material/Search';
 import TypeTable from './TypeTable';
 import damageCalculator from './DamageCalculator';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 
 class PokeInfo extends React.Component {
     constructor() {
@@ -44,16 +47,18 @@ class PokeInfo extends React.Component {
         this.calculatedTypeChart = [];
         this.typingDamageCalcs = [];
         const pokemonData = await this.getPokemonData();
-        await Promise.all(
-            pokemonData.types.map(async (type) => {
-                const typeAPIFetch = await this.getTypeMatch(type.type.url);
-                this.typingDamageCalcs.push({
-                    'type': typeAPIFetch.name,
-                    'damageCalcs': typeAPIFetch.damage_relations
+        if (pokemonData) {
+            await Promise.all(
+                pokemonData.types.map(async (type) => {
+                    const typeAPIFetch = await this.getTypeMatch(type.type.url);
+                    this.typingDamageCalcs.push({
+                        'type': typeAPIFetch.name,
+                        'damageCalcs': typeAPIFetch.damage_relations
+                    })
+                    return (this.typingDamageCalcs);
                 })
-                return (this.typingDamageCalcs);
-            })
-        )
+            )
+        }
         this.calculatedTypeChart = damageCalculator(this.typeChart, this.typingDamageCalcs, this.state.offense);
         this.setState({ loading: false });
     }
@@ -77,6 +82,7 @@ class PokeInfo extends React.Component {
     async getPokemonData() {
         const url = 'https://pokeapi.co/api/v2/pokemon/' + this.state.userPokemon + '/';
         const response = await fetch(url);
+        console.log(response.status)
         if (response.status === 200) {
             const pokemonData = await response.json();
             this.setState({
@@ -91,7 +97,7 @@ class PokeInfo extends React.Component {
         }
         else {
             this.setState({
-                errorMessage: "That Pokemon doesn't exist in the database, check spelling or choose one with similar typing.",
+                errorMessage: "Pokemon not found, try regional variants or check spelling.",
             });
         }
     }
@@ -126,40 +132,48 @@ class PokeInfo extends React.Component {
     }
 
     render() {
-        let typeOne = this.state.pokemonTypeOne;
-        let typeTwo = this.state.pokemonTypeTwo;
 
         return (
-            <div style={{ padding: '10px', textAlign: 'center' }}>
-                <Grid>
-                    <TextField className="userInput"
-                        variant='outlined'
-                        value={this.state.editingUserPokemon}
-                        onChange={this.handleNameChange}
-                    />
-                    <Button onClick={this.handleNameSubmit}>
-                        Submit
-                    </Button>
-                    <Button onClick={this.handleToggleOffense}>
-                        {this.state.offense ? 'Showing Offense' : 'Showing Defense'}
-                    </Button>
-                </Grid>
+            <div style={{ padding: '100px 50px 50px 20px' }}>
+                {this.state.errorMessage ? this.state.errorMessage : ''}
+                <Grid container spacing={2} direction='row' justifyContent="center" alignItems='center' >
+                    <Grid item xs={3}>
+                        <TextField className="userInput"
+                            variant='outlined'
+                            value={this.state.editingUserPokemon}
+                            onChange={this.handleNameChange}
+                        />
+                        <Button>
+                            <SearchIcon onClick={this.handleNameSubmit} />
+                        </Button>
+                        {!this.state.errorMessage &&
+                            <div className="formInline">
+                                {this.state.loading ? 'Loading...' : 'You entered: ' + this.state.pokemonName}
+                                {this.state.pokemonImage ? <img src={this.state.pokemonImage.front_default} alt='Not found' /> : ''}
 
-                <React.Fragment>
-                    {this.state.errorMessage ? this.state.errorMessage :
-                        <div className="formInline">
-                            {this.state.loading ? 'Loading...' : 'You entered: ' + this.state.pokemonName + '. ' +
-                                typeOne.type.name + (typeTwo && typeTwo.type.name ? ', ' + typeTwo.type.name : '')}
-                            {this.state.pokemonImage ? <img src={this.state.pokemonImage.front_default} alt='Not found' /> : ''}
-
+                            </div>
+                        }
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                            Strengths
+                            {!this.state.offense ?
+                                <ToggleOnIcon sx={{ color: 'red', fontSize: 40 }} onClick={this.handleToggleOffense} /> :
+                                <ToggleOffIcon sx={{ color: 'green', fontSize: 40 }} onClick={this.handleToggleOffense} />}
+                            Weaknesses
                         </div>
-                    }
-                </React.Fragment>
-                <TypeTable style={{ padding: '10px' }}
-                    typeChart={this.typeChart}
-                    damageCalcs={this.typingDamageCalcs}
-                />
-            </div>
+                    </Grid>
+                    <Grid item xs={9}>
+                        <React.Fragment>
+                            <TypeTable style={{ padding: '10px' }}
+                                typeChart={this.typeChart}
+                                damageCalcs={this.typingDamageCalcs}
+                                typeOne={this.state.pokemonTypeOne}
+                                typeTwo={this.state.pokemonTypeTwo}
+                                offense={this.state.offense}
+                            />
+                        </React.Fragment>
+                    </Grid>
+                </Grid>
+            </div >
         )
     }
 }
