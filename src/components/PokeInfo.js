@@ -7,6 +7,7 @@ import TypeTable from './TypeTable';
 import damageCalculator from './DamageCalculator';
 import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 import ToggleOnIcon from '@mui/icons-material/ToggleOn';
+import Typography from '@material-ui/core/Typography';
 
 class PokeInfo extends React.Component {
     constructor() {
@@ -82,7 +83,6 @@ class PokeInfo extends React.Component {
     async getPokemonData() {
         const url = 'https://pokeapi.co/api/v2/pokemon/' + this.state.userPokemon + '/';
         const response = await fetch(url);
-        console.log(response.status)
         if (response.status === 200) {
             const pokemonData = await response.json();
             this.setState({
@@ -124,7 +124,14 @@ class PokeInfo extends React.Component {
     handleNameSubmit = (e) => {
         e.preventDefault();
         let newPokemon = this.state.editingUserPokemon;
-        this.setState({ userPokemon: newPokemon, loading: true });
+        if (newPokemon) {
+            this.setState({ userPokemon: newPokemon, loading: true });
+        }
+        else {
+            this.setState({
+                errorMessage: "Need to enter a pokemon.",
+            });
+        }
     }
 
     handleToggleOffense = () => {
@@ -135,15 +142,24 @@ class PokeInfo extends React.Component {
 
         return (
             <div style={{ padding: '100px 50px 50px 20px' }}>
-                {this.state.errorMessage ? this.state.errorMessage : ''}
+                <div style={{ marginBottom: '25px' }}>
+                    <Typography>Enter a pokemon below to see its typing, and a type chart of its effectiveness against other types.</Typography>
+                    <Typography>If a pokemon isn't being found by name, try by dex number instead.</Typography>
+                    <Typography style={{ color: 'red' }}>{this.state.errorMessage ? this.state.errorMessage : ''}</Typography>
+                </div>
                 <Grid container spacing={2} direction='row' justifyContent="center" alignItems='center' >
                     <Grid item xs={3}>
                         <TextField className="userInput"
                             variant='outlined'
                             value={this.state.editingUserPokemon}
                             onChange={this.handleNameChange}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    this.handleNameSubmit(e);
+                                }
+                            }}
                         />
-                        <Button>
+                        <Button style={{ margin: '5px' }}>
                             <SearchIcon onClick={this.handleNameSubmit} />
                         </Button>
                         {!this.state.errorMessage &&
@@ -169,6 +185,7 @@ class PokeInfo extends React.Component {
                                 typeOne={this.state.pokemonTypeOne}
                                 typeTwo={this.state.pokemonTypeTwo}
                                 offense={this.state.offense}
+                                error={this.state.errorMessage}
                             />
                         </React.Fragment>
                     </Grid>

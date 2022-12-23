@@ -25,8 +25,8 @@ class TypeTable extends React.Component {
             )
             return imagesList;
         })
-        imagesList.forEach(image => {
-            imgTags.push(<img style={{ height: '50px', width: '100px' }}
+        imagesList.forEach((image, key) => {
+            imgTags.push(<img key={key} style={{ height: '50px', width: '100px' }}
                 src={image} alt={image.split('_')[1].split('.')[0]} />);
         })
         return (imgTags)
@@ -51,6 +51,7 @@ class TypeTable extends React.Component {
         let typeTwoTitle = (typeTwo ? this.findImageFromTypeName(typeTwo.type.name) : null);
 
         return (
+            !this.props.error &&
             <div>
                 {this.tableData && <div style={{ maxWidth: '100%' }}>
                     <div style={{ justifyContent: "center", alignItems: 'center', display: 'flex' }}>
