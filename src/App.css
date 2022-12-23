@@ -1,0 +1,37 @@
+body{
+  background-color: rgb(245, 239, 239);
+}
+
+.homePage {
+  color: black;
+  align-items: flex-start;
+}
+
+.toolbar {
+  background-color: darkcyan;
+}
+
+.formInline {
+  display: inline-flex !important;
+  flex-flow: row wrap !important;
+  align-items: center !important;
+}
+
+.plainText {
+  display: inline-flex;
+}
+
+.image {
+  display: inline-block;
+}
+
+.userInput {
+  margin: 0px;
+
+}
+
+div.userInput input {
+  text-transform: lowercase;
+  padding: 8px
+}
+
