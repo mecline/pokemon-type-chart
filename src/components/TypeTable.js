@@ -2,6 +2,7 @@ import React from 'react';
 import MaterialTable from 'material-table';
 import { generateTableData } from './DamageCalculator';
 import { typeImages } from '../data/types';
+import Paper from '@material-ui/core/Paper';
 
 class TypeTable extends React.Component {
     constructor() {
@@ -17,7 +18,6 @@ class TypeTable extends React.Component {
 
     customRowRender(rowObject) {
         let imagesList = [];
-        let imgTags = [];
         let rowTypes = rowObject.split(',');
         rowTypes.forEach(type => {
             typeImages.map(image =>
@@ -25,54 +25,94 @@ class TypeTable extends React.Component {
             )
             return imagesList;
         })
-        imagesList.forEach((image, key) => {
-            imgTags.push(<img key={key} style={{ height: '50px', width: '100px' }}
-                src={image} alt={image.split('_')[1].split('.')[0]} />);
-        })
-        return (imgTags)
-    }
-
-    findImageFromTypeName(typeName) {
-        let imageSrc = "";
-        typeImages.map(image => {
-            if (typeName.includes(image.name)) {
-                imageSrc = image.image
-            }
-            return imageSrc;
-        })
-        return (<img style={{ height: '50px', width: '100px' }} src={imageSrc} alt={imageSrc.split('_')[1].split('.')[0]} />)
+        
+        return (
+            <div className="type-image-container">
+                {imagesList.map((image, key) => (
+                    <img 
+                        key={key} 
+                        src={image} 
+                        alt={image.split('_')[1].split('.')[0]} 
+                    />
+                ))}
+            </div>
+        );
     }
 
     render() {
-        const { typeChart, typeOne, typeTwo, offense } = this.props;
+        const { typeChart, offense } = this.props;
 
         this.tableData = generateTableData(typeChart);
-        let typeOneTitle = (typeOne && this.findImageFromTypeName(typeOne.type.name));
-        let typeTwoTitle = (typeTwo ? this.findImageFromTypeName(typeTwo.type.name) : null);
+        
+        // The correct column headers based on offense mode (true = strengths, false = weaknesses)
+        const columnHeaders = offense ? 
+            ['Super effective against', 'Not very effective against', 'No effect against'] :
+            ['Weak to', 'Resistant to', 'Immune to'];
+
+        const columnStyle = {
+            width: '33.33%',
+            padding: '16px'
+        };
+
+        const headerStyle = {
+            ...columnStyle,
+            color: 'white',
+            fontWeight: 'bold'
+        };
 
         return (
-            !this.props.error &&
-            <div>
-                {this.tableData && <div style={{ maxWidth: '100%' }}>
-                    <div style={{ justifyContent: "center", alignItems: 'center', display: 'flex' }}>
-                        {typeOneTitle}
-                        {typeTwoTitle}
-                    </div>
+            !this.props.error && this.tableData && (
+                <Paper elevation={3} style={{ 
+                    borderRadius: '16px', 
+                    overflow: 'hidden',
+                    marginTop: 0
+                }}>
                     <MaterialTable
+                        components={{
+                            Container: props => <div {...props} style={{ padding: 0 }} />,
+                            Toolbar: () => null
+                        }}
                         columns={[
                             {
-                                title: (offense ? 'Deals ' : 'Takes ') + 'x2 Damage', field: 'doubleDamage',
-                                render: rowData => (this.customRowRender(rowData.doubleDamage))
+                                title: columnHeaders[0], 
+                                field: 'doubleDamage',
+                                headerStyle: {
+                                    ...headerStyle,
+                                    backgroundColor: '#ff1f1f',
+                                },
+                                cellStyle: {
+                                    ...columnStyle,
+                                    backgroundColor: '#ffaaaa',
+                                }
                             },
                             {
-                                title: (offense ? 'Deals ' : 'Takes ') + '0.5 Damage', field: 'halfDamage',
-                                render: rowData => (this.customRowRender(rowData.halfDamage))
+                                title: columnHeaders[1], 
+                                field: 'halfDamage',
+                                headerStyle: {
+                                    ...headerStyle,
+                                    backgroundColor: '#47ae58',
+                                },
+                                cellStyle: {
+                                    ...columnStyle,
+                                    backgroundColor: '#c8f5d0',
+                                }
                             },
                             {
-                                title: (offense ? 'Deals ' : 'Takes ') + 'No Damage', field: 'noDamage',
-                                render: rowData => (this.customRowRender(rowData.noDamage))
+                                title: columnHeaders[2], 
+                                field: 'noDamage',
+                                headerStyle: {
+                                    ...headerStyle,
+                                    backgroundColor: '#3d7dca',
+                                },
+                                cellStyle: {
+                                    ...columnStyle,
+                                    backgroundColor: '#b4d4ff',
+                                }
                             }
-                        ]}
+                        ].map(column => ({
+                            ...column,
+                            render: rowData => this.customRowRender(rowData[column.field])
+                        }))}
                         data={this.tableData}
                         title={null}
                         options={{
@@ -81,12 +121,25 @@ class TypeTable extends React.Component {
                             filtering: false,
                             grouping: false,
                             selection: false,
-                            paging: false
+                            paging: false,
+                            toolbar: false,
+                            headerStyle: {
+                                fontWeight: 'bold'
+                            },
+                            rowStyle: {
+                                padding: '0px'
+                            },
+                            fixedColumns: true,
+                            padding: 'dense'
+                        }}
+                        style={{
+                            tableLayout: 'fixed',
+                            margin: 0,
+                            padding: 0
                         }}
                     />
-                </div>
-                }
-            </div>
+                </Paper>
+            )
         )
     }
 }
